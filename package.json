@@ -3,13 +3,12 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Furevrnac — the forever almanac. Download once, play forever.",
+  "description": "Furevrnac \u2014 the forever almanac. Download once, play forever.",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "test": "vitest run",
-    "lint": "eslint src"
+    "test": "vitest run"
   },
   "devDependencies": {
     "typescript": "^5.6.0",
