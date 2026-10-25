@@ -1,0 +1,47 @@
+:root {
+  --paper: #f6f1e7;
+  --ink: #1c1b1a;
+  --accent: #d43d2a;
+  --gray: #b8b2a8;
+  --white: #fffdf8;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  height: 100%;
+  overscroll-behavior: none;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Zen Maru Gothic", "Hiragino Sans", "Segoe UI", system-ui,
+    sans-serif;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#app {
+  height: 100dvh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+    env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+#canvas {
+  display: block;
+  background: var(--paper);
+  touch-action: none;
+}
