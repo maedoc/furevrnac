@@ -22,6 +22,8 @@ after the first load it never needs the network again.
 | Ink Pong | Drag to rally against the brush AI, first to 5 |
 | Mine Panels | Tap to open, hold to flag |
 | Ink Chess | Two players, one board — tap a piece, tap a target |
+| Ink Checkers | Two players, forced captures, multi-jumps, kings |
+| Ink Go | Two players, 9/13/19 board, captures, ko, area scoring |
 
 ## Play
 

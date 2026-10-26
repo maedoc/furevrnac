@@ -6,6 +6,8 @@ import { TetrominoGame } from "./tetromino";
 import { PongGame } from "./pong";
 import { MinesweeperGame } from "./minesweeper";
 import { ChessGame } from "./chess";
+import { CheckersGame } from "./checkers";
+import { GoGame } from "./go";
 
 export const GAMES: Game[] = [
   new SnakeGame(),
@@ -15,4 +17,6 @@ export const GAMES: Game[] = [
   new PongGame(),
   new MinesweeperGame(),
   new ChessGame(),
+  new CheckersGame(),
+  new GoGame(),
 ];

@@ -1,4 +1,4 @@
-const CACHE = "furevrnac-v4";
+const CACHE = "furevrnac-v5";
 const ASSETS = [
   "./",
   "./index.html",
