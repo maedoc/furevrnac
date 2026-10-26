@@ -24,6 +24,7 @@ after the first load it never needs the network again.
 | Ink Chess | Two players, one board — tap a piece, tap a target |
 | Ink Checkers | Two players, forced captures, multi-jumps, kings |
 | Ink Go | Two players, 9/13/19 board, captures, ko, area scoring |
+| Ink Blade | Bullet-time platformer — hold left to slow time, tap right to jump/dash |
 
 ## Play
 

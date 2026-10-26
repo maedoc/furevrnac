@@ -8,6 +8,7 @@ export interface Input {
   consumeEvents(): InputEvent[];
   isPointerDown(): boolean;
   pointerPos(): { x: number; y: number };
+  activePointers(): { x: number; y: number; id: number }[];
 }
 
 const LONGPRESS_MS = 420;
@@ -16,6 +17,7 @@ const MOVE_TOLERANCE = 12;
 export class TouchInput implements Input {
   private events: InputEvent[] = [];
   private down = false;
+  private pointers = new Map<number, { x: number; y: number }>();
   private startX = 0;
   private startY = 0;
   private lastX = 0;
@@ -40,6 +42,7 @@ export class TouchInput implements Input {
   private onDown(e: PointerEvent): void {
     const p = this.local(e);
     this.down = true;
+    this.pointers.set(e.pointerId, p);
     this.moved = false;
     this.startX = this.lastX = p.x;
     this.startY = this.lastY = p.y;
@@ -60,6 +63,7 @@ export class TouchInput implements Input {
   private onMove(e: PointerEvent): void {
     if (!this.down) return;
     const p = this.local(e);
+    this.pointers.set(e.pointerId, p);
     const dx = p.x - this.lastX;
     const dy = p.y - this.lastY;
     if (
@@ -75,6 +79,7 @@ export class TouchInput implements Input {
   }
 
   private onUp(e: PointerEvent): void {
+    this.pointers.delete(e.pointerId);
     if (!this.down) return;
     window.clearTimeout(this.holdTimer);
     const p = this.local(e);
@@ -101,6 +106,7 @@ export class TouchInput implements Input {
   private reset(): void {
     this.down = false;
     this.moved = false;
+    this.pointers.clear();
     window.clearTimeout(this.holdTimer);
   }
 
@@ -116,5 +122,13 @@ export class TouchInput implements Input {
 
   pointerPos(): { x: number; y: number } {
     return { x: this.lastX, y: this.lastY };
+  }
+
+  activePointers(): { x: number; y: number; id: number }[] {
+    return [...this.pointers.entries()].map(([id, p]) => ({
+      x: p.x,
+      y: p.y,
+      id,
+    }));
   }
 }

@@ -8,6 +8,7 @@ import { MinesweeperGame } from "./minesweeper";
 import { ChessGame } from "./chess";
 import { CheckersGame } from "./checkers";
 import { GoGame } from "./go";
+import { NinjaGame } from "./ninja";
 
 export const GAMES: Game[] = [
   new SnakeGame(),
@@ -19,4 +20,5 @@ export const GAMES: Game[] = [
   new ChessGame(),
   new CheckersGame(),
   new GoGame(),
+  new NinjaGame(),
 ];
