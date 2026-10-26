@@ -1,4 +1,5 @@
 import type { Game, GameContext } from "./types";
+import { sfx } from "../engine/sfx";
 import {
   PALETTE,
   inkRect,
@@ -94,6 +95,7 @@ export class TetrominoGame implements Game {
   }
 
   private lock(g: GameContext): void {
+    sfx.move();
     const p = this.piece!;
     for (let y = 0; y < p.shape.length; y++) {
       for (let x = 0; x < p.shape[y].length; x++) {
@@ -110,6 +112,7 @@ export class TetrominoGame implements Game {
     if (cleared.length > 0) {
       this.clearFlash = cleared;
       this.flashT = 320;
+      sfx.clear();
       this.lines += cleared.length;
       this.score += [0, 100, 300, 500, 800][cleared.length];
       this.fallMs = Math.max(120, 700 - this.lines * 12);
@@ -173,6 +176,7 @@ export class TetrominoGame implements Game {
           if (this.tryMove(0, 1)) this.score += 1;
         } else {
           this.rotate();
+          sfx.tap();
         }
       } else if (e.type === "tap") {
         this.hardDrop(g);

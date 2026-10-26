@@ -1,5 +1,6 @@
 export type InputEvent =
   | { type: "tap"; x: number; y: number }
+  | { type: "longpress"; x: number; y: number }
   | { type: "swipe"; dir: "up" | "down" | "left" | "right" }
   | { type: "drag"; dx: number; dy: number; x: number; y: number };
 
@@ -8,6 +9,9 @@ export interface Input {
   isPointerDown(): boolean;
   pointerPos(): { x: number; y: number };
 }
+
+const LONGPRESS_MS = 420;
+const MOVE_TOLERANCE = 12;
 
 export class TouchInput implements Input {
   private events: InputEvent[] = [];
@@ -18,6 +22,7 @@ export class TouchInput implements Input {
   private lastY = 0;
   private startT = 0;
   private moved = false;
+  private holdTimer = 0;
 
   constructor(private canvas: HTMLCanvasElement) {
     canvas.style.touchAction = "none";
@@ -39,6 +44,17 @@ export class TouchInput implements Input {
     this.startX = this.lastX = p.x;
     this.startY = this.lastY = p.y;
     this.startT = performance.now();
+    this.holdTimer = window.setTimeout(() => {
+      if (
+        this.down &&
+        !this.moved &&
+        Math.hypot(this.lastX - this.startX, this.lastY - this.startY) <
+          MOVE_TOLERANCE
+      ) {
+        this.events.push({ type: "longpress", x: this.lastX, y: this.lastY });
+        this.moved = true;
+      }
+    }, LONGPRESS_MS);
   }
 
   private onMove(e: PointerEvent): void {
@@ -46,14 +62,21 @@ export class TouchInput implements Input {
     const p = this.local(e);
     const dx = p.x - this.lastX;
     const dy = p.y - this.lastY;
-    if (Math.abs(dx) + Math.abs(dy) > 2) this.moved = true;
-    this.events.push({ type: "drag", dx, dy, x: p.x, y: p.y });
+    if (
+      !this.moved &&
+      Math.hypot(p.x - this.startX, p.y - this.startY) > MOVE_TOLERANCE
+    ) {
+      this.moved = true;
+      window.clearTimeout(this.holdTimer);
+    }
+    if (this.moved) this.events.push({ type: "drag", dx, dy, x: p.x, y: p.y });
     this.lastX = p.x;
     this.lastY = p.y;
   }
 
   private onUp(e: PointerEvent): void {
     if (!this.down) return;
+    window.clearTimeout(this.holdTimer);
     const p = this.local(e);
     const dx = p.x - this.startX;
     const dy = p.y - this.startY;
@@ -78,6 +101,7 @@ export class TouchInput implements Input {
   private reset(): void {
     this.down = false;
     this.moved = false;
+    window.clearTimeout(this.holdTimer);
   }
 
   consumeEvents(): InputEvent[] {

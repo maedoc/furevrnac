@@ -1,4 +1,5 @@
 import type { Game, GameContext } from "./types";
+import { sfx } from "../engine/sfx";
 import {
   PALETTE,
   inkRect,
@@ -107,6 +108,7 @@ export class SnakeGame implements Game {
       this.body.some((c) => c.x === nx && c.y === ny)
     ) {
       this.alive = false;
+      sfx.die();
       if (this.score > this.best) {
         this.best = this.score;
         g.save.set("snake:best", this.best);
@@ -120,6 +122,7 @@ export class SnakeGame implements Game {
       this.splash = { x: nx, y: ny, t: 300 };
       this.spawnFood(g);
       this.tickMs = Math.max(70, 170 - this.score * 4);
+      sfx.eat();
       if (navigator.vibrate) navigator.vibrate(20);
     } else {
       this.body.pop();

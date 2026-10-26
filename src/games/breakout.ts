@@ -1,4 +1,5 @@
 import type { Game, GameContext } from "./types";
+import { sfx } from "../engine/sfx";
 import {
   PALETTE,
   inkRect,
@@ -84,6 +85,7 @@ export class BreakoutGame implements Game {
       this.vx = hit * 0.5;
       this.vy = -Math.sqrt(Math.max(0.15, 0.45 - hit * hit * 0.2));
       this.ballY = paddleY - 0.02;
+      sfx.bounce();
       if (navigator.vibrate) navigator.vibrate(10);
     }
 
@@ -97,9 +99,11 @@ export class BreakoutGame implements Game {
       this.score += 10;
       this.shake = 120;
       this.vy *= -1;
+      sfx.brick();
       if (navigator.vibrate) navigator.vibrate(20);
       if (this.bricks.every((r) => r.every((b) => !b))) {
         this.state = "clear";
+        sfx.win();
         if (this.score > this.best) {
           this.best = this.score;
           g.save.set("breakout:best", this.best);
@@ -109,6 +113,7 @@ export class BreakoutGame implements Game {
 
     if (this.ballY > 1.02) {
       this.lives--;
+      sfx.die();
       if (this.lives <= 0) {
         this.state = "dead";
         if (this.score > this.best) {

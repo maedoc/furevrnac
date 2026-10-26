@@ -3,7 +3,8 @@
 **The forever almanac — download once, play forever.**
 
 A free, offline-first collection of classic games rendered in a sumi-e manga
-ink style, built touch-first. No ads, no monetization, no social, no
+ink style, built touch-first. Chiptune blips included — no assets, all
+synthesized. No ads, no monetization, no social, no
 telemetry. Serve it from GitHub Pages or package it as an iOS/Android app —
 after the first load it never needs the network again.
 
@@ -18,6 +19,9 @@ after the first load it never needs the network again.
 | Sumi 2048 | Swipe to merge |
 | Ink Breaker | Drag paddle, tap to launch |
 | Tetromino Fall | Swipe left/right to move, down to soft drop, up to rotate, tap to hard drop |
+| Ink Pong | Drag to rally against the brush AI, first to 5 |
+| Mine Panels | Tap to open, hold to flag |
+| Ink Chess | Two players, one board — tap a piece, tap a target |
 
 ## Play
 

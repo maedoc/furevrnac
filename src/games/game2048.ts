@@ -6,6 +6,7 @@ import {
   speechBubble,
   speedLines,
 } from "../engine/style";
+import { sfx } from "../engine/sfx";
 
 const SIZE = 4;
 
@@ -122,12 +123,14 @@ export class Game2048 implements Game {
         if (res.moved) {
           this.score += res.gained;
           if (res.gained > 0) {
+            sfx.move();
             this.flash = 250;
             if (navigator.vibrate) navigator.vibrate(15);
           }
           addRandomTile(this.grid);
           if (!canMove(this.grid)) {
             this.over = true;
+            sfx.die();
             if (this.score > this.best) {
               this.best = this.score;
               g.save.set("2048:best", this.best);
