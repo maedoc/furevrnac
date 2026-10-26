@@ -27,7 +27,7 @@ export class SnakeGame implements Game {
   private dir = { x: 0, y: 1 };
   private queuedDir = { x: 0, y: 1 };
   private food: Cell = { x: 8, y: 4 };
-  private tickMs = 170;
+  private tickMs = 220;
   private acc = 0;
   private score = 0;
   private best = 0;
@@ -43,7 +43,7 @@ export class SnakeGame implements Game {
     this.dir = { x: 0, y: -1 };
     this.queuedDir = { x: 0, y: -1 };
     this.score = 0;
-    this.tickMs = 170;
+    this.tickMs = 220;
     this.acc = 0;
     this.alive = true;
     this.best = g.save.get("snake:best", 0);
@@ -121,7 +121,7 @@ export class SnakeGame implements Game {
       this.score++;
       this.splash = { x: nx, y: ny, t: 300 };
       this.spawnFood(g);
-      this.tickMs = Math.max(70, 170 - this.score * 4);
+      this.tickMs = Math.max(90, 220 - this.score * 5);
       sfx.eat();
       if (navigator.vibrate) navigator.vibrate(20);
     } else {
