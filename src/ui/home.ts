@@ -7,54 +7,83 @@ import {
 } from "../engine/style";
 import type { Input, InputEvent } from "../engine/input";
 
-interface Card {
-  x: number;
-  y: number;
+interface CardDims {
   w: number;
   h: number;
-  game: Game;
+  gap: number;
+  top: number;
 }
 
 export class HomeScreen {
-  private cards: Card[] = [];
   private scroll = 0;
+  private velocity = 0;
   private maxScroll = 0;
+  private dims: CardDims = { w: 0, h: 0, gap: 0, top: 0 };
 
   layout(w: number, h: number, games: Game[]): void {
     const cw = Math.min(w * 0.86, 420);
     const ch = Math.min(h * 0.16, 96);
     const gap = ch * 0.28;
+    this.dims = { w: cw, h: ch, gap, top: h * 0.24 };
     const total = games.length * (ch + gap) - gap;
-    this.maxScroll = Math.max(0, total - h * 0.62);
-    this.cards = games.map((game, i) => ({
-      x: w / 2 - cw / 2,
-      y: h * 0.24 + i * (ch + gap) - this.scroll,
-      w: cw,
-      h: ch,
-      game,
-    }));
+    this.maxScroll = Math.max(0, total - h * 0.6);
+    this.scroll = Math.min(this.scroll, this.maxScroll);
   }
 
-  update(dt: number, ctx: { w: number; h: number; input: Input; onOpen: (g: Game) => void }): void {
-    void dt;
+  update(
+    dt: number,
+    ctx: { w: number; h: number; input: Input; onOpen: (g: Game) => void; games: Game[] },
+  ): void {
     const events: InputEvent[] = ctx.input.consumeEvents();
+    const { h: ch, gap } = this.dims;
+
     let dragged = false;
+    let tapCandidate: { x: number; y: number } | null = null;
+
     for (const e of events) {
       if (e.type === "drag") {
         dragged = true;
-        this.scroll = Math.min(
-          this.maxScroll,
-          Math.max(0, this.scroll - e.dy),
-        );
+        this.scroll -= e.dy;
+        this.velocity = -e.dy / (dt / 1000 + 0.001);
+        this.clamp();
       } else if (e.type === "tap") {
-        const card = this.cards.find(
-          (c) =>
-            e.x >= c.x && e.x <= c.x + c.w && e.y >= c.y && e.y <= c.y + c.h,
-        );
-        if (card) ctx.onOpen(card.game);
+        tapCandidate = { x: e.x, y: e.y };
       }
     }
-    void dragged;
+
+    if (!dragged) {
+      this.scroll += this.velocity * (dt / 1000);
+      this.velocity *= Math.pow(0.0025, dt / 1000);
+      if (Math.abs(this.velocity) < 0.01) this.velocity = 0;
+      this.clamp();
+    }
+
+    if (tapCandidate) {
+      const y = tapCandidate.y + this.scroll;
+      let idx = Math.floor((y - this.dims.top + gap) / (ch + gap));
+      if (idx < 0) idx = 0;
+      if (idx >= ctx.games.length) idx = ctx.games.length - 1;
+      const cardTop = this.dims.top + idx * (ch + gap);
+      if (y >= cardTop && y <= cardTop + ch) {
+        const gx = tapCandidate.x;
+        const cx = ctx.w / 2 - this.dims.w / 2;
+        if (gx >= cx && gx <= cx + this.dims.w) {
+          ctx.onOpen(ctx.games[idx]);
+          this.velocity = 0;
+        }
+      }
+    }
+  }
+
+  private clamp(): void {
+    if (this.scroll < 0) {
+      this.scroll = 0;
+      this.velocity = 0;
+    }
+    if (this.scroll > this.maxScroll) {
+      this.scroll = this.maxScroll;
+      this.velocity = 0;
+    }
   }
 
   render(ctx: CanvasRenderingContext2D, w: number, h: number): void {
@@ -76,34 +105,74 @@ export class HomeScreen {
     ctx.lineTo(w * 0.85, h * 0.165);
     ctx.stroke();
 
-    for (const c of this.cards) {
-      if (c.y > h || c.y + c.h < 0) continue;
-      inkRect(ctx, c.x, c.y, c.w, c.h, PALETTE.white, PALETTE.ink, 3.5);
-      ctx.save();
-      ctx.beginPath();
-      ctx.roundRect(c.x + 3, c.y + 3, c.w - 6, c.h - 6, 6);
-      ctx.clip();
-      const pattern = halftonePattern(ctx);
-      ctx.fillStyle = pattern;
-      ctx.save();
-      ctx.globalAlpha = 0.18;
-      ctx.fillRect(c.x, c.y + c.h * 0.55, c.w, c.h * 0.45);
-      ctx.restore();
-      ctx.restore();
+    const { w: cw, h: ch, gap, top } = this.dims;
+    const bottomFade = h * 0.9;
 
-      ctx.fillStyle = c.game.accent;
-      ctx.beginPath();
-      ctx.arc(c.x + c.h * 0.35, c.y + c.h / 2, c.h * 0.22, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = PALETTE.ink;
-      ctx.lineWidth = 3;
-      ctx.stroke();
-
-      inkText(ctx, c.game.name, c.x + c.h * 0.72, c.y + c.h * 0.32, Math.min(c.h * 0.26, s * 0.045), PALETTE.ink, "900", "left");
-      inkText(ctx, c.game.blurb, c.x + c.h * 0.72, c.y + c.h * 0.62, Math.min(c.h * 0.17, s * 0.03), PALETTE.gray, "500", "left");
-      inkText(ctx, "▶", c.x + c.w - c.h * 0.25, c.y + c.h / 2, c.h * 0.22, PALETTE.accent);
+    for (let i = 0; ; i++) {
+      const cardY = top + i * (ch + gap) - this.scroll;
+      if (cardY >= h) break;
+      if (i >= this.gameCount) break;
+      if (cardY + ch < 0) continue;
+      this.renderCard(ctx, w, cardY, cw, ch, i);
     }
+    void bottomFade;
 
+    if (this.maxScroll > 0 && this.scroll < this.maxScroll - 4) {
+      ctx.fillStyle = PALETTE.accent;
+      ctx.beginPath();
+      ctx.arc(w / 2, h * 0.925, s * 0.012, 0, Math.PI * 2);
+      ctx.fill();
+    }
     inkText(ctx, "free · offline · forever", w / 2, h * 0.965, s * 0.028, PALETTE.gray);
+  }
+
+  private gameCount = 0;
+
+  setGameCount(n: number): void {
+    this.gameCount = n;
+  }
+
+  private renderCard(
+    ctx: CanvasRenderingContext2D,
+    w: number,
+    y: number,
+    cw: number,
+    ch: number,
+    index: number,
+  ): void {
+    const x = w / 2 - cw / 2;
+    const game = this.games[index];
+    if (!game) return;
+
+    inkRect(ctx, x, y, cw, ch, PALETTE.white, PALETTE.ink, 3.5);
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(x + 3, y + 3, cw - 6, ch - 6, 6);
+    ctx.clip();
+    ctx.save();
+    ctx.globalAlpha = 0.18;
+    ctx.fillStyle = halftonePattern(ctx);
+    ctx.fillRect(x, y + ch * 0.55, cw, ch * 0.45);
+    ctx.restore();
+    ctx.restore();
+
+    ctx.fillStyle = game.accent;
+    ctx.beginPath();
+    ctx.arc(x + ch * 0.35, y + ch / 2, ch * 0.22, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    inkText(ctx, game.name, x + ch * 0.72, y + ch * 0.32, Math.min(ch * 0.26, w * 0.045), PALETTE.ink, "900", "left");
+    inkText(ctx, game.blurb, x + ch * 0.72, y + ch * 0.62, Math.min(ch * 0.17, w * 0.03), PALETTE.gray, "500", "left");
+    inkText(ctx, "▶", x + cw - ch * 0.25, y + ch / 2, ch * 0.22, game.accent);
+  }
+
+  private games: Game[] = [];
+
+  setGames(games: Game[]): void {
+    this.games = games;
+    this.gameCount = games.length;
   }
 }

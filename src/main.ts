@@ -10,6 +10,7 @@ const ctx = canvas.getContext("2d")!;
 const input = new TouchInput(canvas);
 const save = createSafeStorage();
 const home = new HomeScreen();
+home.setGames(GAMES);
 
 let w = 0;
 let h = 0;
@@ -81,6 +82,7 @@ function frame(t: number): void {
       w,
       h,
       input,
+      games: GAMES,
       onOpen: (game) => {
         current = game;
         game.init(gameContext());
