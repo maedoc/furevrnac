@@ -15,12 +15,10 @@ import {
   initState as towerInit,
   pathPos,
   placeTower,
-  step as towerStep,
   stepSeconds as towerStepSeconds,
 } from "../src/games/tower-sim";
 import {
   TREE_COST,
-  TAPPER_COST,
   buyFertilizer,
   buyTapper,
   buyTree,
@@ -176,7 +174,7 @@ describe("tower sim", () => {
   });
 
   it("pathPos interpolates along segments", () => {
-    const e = { pathIdx: 0, t: 0.5, hp: 1, maxHp: 1, speed: 1, kind: 0, dead: false };
+    const e = { pathIdx: 0, t: 0.5, hp: 1, maxHp: 1, speed: 1, kind: 0 as const, dead: false };
     const p = pathPos(e);
     expect(p.x).toBe((-1 + 3) / 2);
     expect(p.y).toBeCloseTo(2);

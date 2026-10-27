@@ -13,6 +13,9 @@ import { SuikaGame } from "./suika";
 import { RunnerGame } from "./runner";
 import { WhackGame } from "./whack";
 import { BowlingGame } from "./bowling";
+import { InvadersGame } from "./invaders";
+import { TowerGame } from "./tower";
+import { OrchardIdleGame } from "./orchard-idle";
 
 export const GAMES: Game[] = [
   new SnakeGame(),
@@ -29,4 +32,7 @@ export const GAMES: Game[] = [
   new RunnerGame(),
   new WhackGame(),
   new BowlingGame(),
+  new InvadersGame(),
+  new TowerGame(),
+  new OrchardIdleGame(),
 ];
