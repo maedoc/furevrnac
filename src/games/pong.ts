@@ -5,7 +5,7 @@ import { sfx } from "../engine/sfx";
 export class PongGame implements Game {
   readonly id = "pong";
   readonly name = "Ink Pong";
-  readonly blurb = "Drag to rally against the ink brush.";
+  readonly blurb = "Duel the brush AI or a friend.";
   readonly accent = "#d43d2a";
 
   private py = 0.5;
@@ -18,7 +18,8 @@ export class PongGame implements Game {
   private as = 0;
   private best = 0;
   private rally = 0;
-  private state: "serve" | "play" | "over" = "serve";
+  private state: "pick" | "serve" | "play" | "over" = "pick";
+  private twoPlayer = false;
 
   init(g: GameContext): void {
     this.py = 0.5;
@@ -26,7 +27,7 @@ export class PongGame implements Game {
     this.ps = 0;
     this.as = 0;
     this.rally = 0;
-    this.state = "serve";
+    this.state = "pick";
     this.best = g.save.get("pong:best", 0);
     this.resetBall(1);
   }
@@ -40,21 +41,77 @@ export class PongGame implements Game {
   }
 
   update(dt: number, g: GameContext): void {
-    const s = dt / 1000;
-    for (const e of g.input.consumeEvents()) {
-      if (e.type === "drag") {
-        this.py = Math.min(0.92, Math.max(0.08, e.y / g.h));
-        if (this.state === "serve") this.state = "play";
-      } else if (e.type === "tap") {
-        if (this.state === "serve") this.state = "play";
-        else if (this.state === "over") {
+    if (this.state === "pick") {
+      const bw = Math.min(g.w * 0.8, 360);
+      const bh = Math.min(g.w, g.h) * 0.11;
+      const gap = bh * 0.5;
+      const top = g.h * 0.32;
+      for (const e of g.input.consumeEvents()) {
+        if (e.type !== "tap") continue;
+        if (
+          e.x > g.w / 2 - bw / 2 &&
+          e.x < g.w / 2 + bw / 2 &&
+          e.y > top &&
+          e.y < top + bh
+        ) {
+          this.twoPlayer = false;
+          this.state = "serve";
+          sfx.tap();
+        } else if (
+          e.x > g.w / 2 - bw / 2 &&
+          e.x < g.w / 2 + bw / 2 &&
+          e.y > top + bh + gap &&
+          e.y < top + 2 * bh + gap
+        ) {
+          this.twoPlayer = true;
+          this.state = "serve";
+          sfx.tap();
+        }
+      }
+      return;
+    }
+
+    const events = g.input.consumeEvents();
+
+    if (this.state === "over") {
+      for (const e of events) {
+        if (e.type === "tap") {
           g.exit();
           return;
         }
       }
+      return;
+    }
+
+    if (this.twoPlayer) {
+      // each half of the screen drives its own paddle; simultaneous
+      // touches supported via multi-pointer input
+      for (const p of g.input.activePointers()) {
+        if (p.x < g.w * 0.5)
+          this.py = Math.min(0.92, Math.max(0.08, p.y / g.h));
+        else this.ay = Math.min(0.92, Math.max(0.08, p.y / g.h));
+      }
+      for (const e of events) {
+        if (e.type === "tap" || e.type === "drag") {
+          if (e.x < g.w * 0.5)
+            this.py = Math.min(0.92, Math.max(0.08, e.y / g.h));
+          else this.ay = Math.min(0.92, Math.max(0.08, e.y / g.h));
+          if (this.state === "serve") this.state = "play";
+        }
+      }
+    } else {
+      for (const e of events) {
+        if (e.type === "drag" || e.type === "tap") {
+          this.py = Math.min(0.92, Math.max(0.08, e.y / g.h));
+          if (this.state === "serve") this.state = "play";
+        }
+      }
     }
     if (this.state !== "play") return;
+    this.physics(dt / 1000, g);
+  }
 
+  private physics(s: number, g: GameContext): void {
     const speed = 0.62 + this.rally * 0.03;
     this.bx += this.vx * speed * s;
     this.by += this.vy * speed * s;
@@ -83,21 +140,22 @@ export class PongGame implements Game {
       sfx.bounce();
     }
 
-    const aiSpeed = 0.45 + Math.min(this.rally * 0.02, 0.25);
-    if (this.vx > 0) {
-      const target = this.by;
-      this.ay += Math.max(-aiSpeed * s, Math.min(aiSpeed * s, target - this.ay));
-    } else {
-      this.ay += Math.max(-aiSpeed * s * 0.5, Math.min(aiSpeed * s * 0.5, 0.5 - this.ay));
+    if (!this.twoPlayer) {
+      const aiSpeed = 0.45 + Math.min(this.rally * 0.02, 0.25);
+      if (this.vx > 0) {
+        this.ay += Math.max(-aiSpeed * s, Math.min(aiSpeed * s, this.by - this.ay));
+      } else {
+        this.ay += Math.max(-aiSpeed * s * 0.5, Math.min(aiSpeed * s * 0.5, 0.5 - this.ay));
+      }
+      this.ay = Math.min(0.92, Math.max(0.08, this.ay));
     }
-    this.ay = Math.min(0.92, Math.max(0.08, this.ay));
 
     if (this.bx < -0.02) {
       this.as++;
       sfx.die();
       if (this.as >= 5) {
         this.state = "over";
-        if (this.ps > this.best) {
+        if (!this.twoPlayer && this.ps > this.best) {
           this.best = this.ps;
           g.save.set("pong:best", this.best);
         }
@@ -106,7 +164,7 @@ export class PongGame implements Game {
     } else if (this.bx > 1.02) {
       this.ps++;
       sfx.score();
-      if (this.ps > this.best) {
+      if (!this.twoPlayer && this.ps > this.best) {
         this.best = this.ps;
         g.save.set("pong:best", this.best);
       }
@@ -118,6 +176,24 @@ export class PongGame implements Game {
   render(g: GameContext): void {
     const { ctx, w, h } = g;
     const s = Math.min(w, h);
+
+    if (this.state === "pick") {
+      inkText(ctx, "Ink Pong", w / 2, h * 0.15, s * 0.07, PALETTE.ink, "900");
+      inkText(ctx, "choose your duel", w / 2, h * 0.23, s * 0.035, PALETTE.gray);
+      const bw = Math.min(w * 0.8, 360);
+      const bh = s * 0.11;
+      const gap = bh * 0.5;
+      const labels = ["vs Brush AI", "two players"];
+      const hints = ["one thumb vs the ink brush", "left half vs right half — drag"];
+      labels.forEach((label, i) => {
+        const y = h * 0.32 + i * (bh + gap);
+        inkRect(ctx, w / 2 - bw / 2, y, bw, bh, PALETTE.white, PALETTE.ink, 3.5);
+        inkText(ctx, label, w / 2, y + bh * 0.38, s * 0.05, PALETTE.ink, "700");
+        inkText(ctx, hints[i], w / 2, y + bh * 0.72, s * 0.026, PALETTE.gray);
+      });
+      return;
+    }
+
     inkRect(ctx, w * 0.02, h * 0.02, w * 0.96, h * 0.96, PALETTE.white, PALETTE.ink, 4);
 
     ctx.strokeStyle = PALETTE.gray;
@@ -152,17 +228,25 @@ export class PongGame implements Game {
 
     inkText(ctx, String(this.ps), w * 0.25, h * 0.09, s * 0.06, PALETTE.ink, "900");
     inkText(ctx, String(this.as), w * 0.75, h * 0.09, s * 0.06, PALETTE.ink, "900");
-    inkText(ctx, `rally ${this.rally}  best ${this.best}`, w / 2, h * 0.965, s * 0.03, PALETTE.gray);
+    const footer = this.twoPlayer
+      ? "two players"
+      : `rally ${this.rally}  best ${this.best}`;
+    inkText(ctx, footer, w / 2, h * 0.965, s * 0.03, PALETTE.gray);
 
     if (this.state === "serve")
-      speechBubble(ctx, "tap to serve", w / 2, h * 0.55, s * 0.05);
+      speechBubble(ctx, "tap or drag to serve", w / 2, h * 0.55, s * 0.05);
     else if (this.state === "over") {
       ctx.fillStyle = "rgba(246,241,231,0.85)";
       ctx.fillRect(0, 0, w, h);
       speedLines(ctx, w / 2, h / 2, s * 0.25, Math.max(w, h) * 0.75, 0.5, 36);
-      const msg = this.ps > this.as ? "You win the rally!" : "The brush wins…";
-      speechBubble(ctx, `${msg} ${this.ps}–${this.as}`, w / 2, h / 2, s * 0.055);
-      inkText(ctx, "tap to return", w / 2, h * 0.62, s * 0.035, PALETTE.gray);
+      const leftName = this.twoPlayer ? "Left" : "You";
+      const rightName = this.twoPlayer ? "Right" : "Brush";
+      const msg =
+        this.ps === this.as
+          ? "A perfect draw!"
+          : `${this.ps > this.as ? leftName : rightName} wins the duel!`;
+      speechBubble(ctx, `${msg} ${this.ps}–${this.as}`, w / 2, h * 0.44, s * 0.05);
+      inkText(ctx, "tap to return", w / 2, h * 0.56, s * 0.035, PALETTE.gray);
     }
   }
 
