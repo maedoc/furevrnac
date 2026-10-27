@@ -35,8 +35,9 @@ after the first load it never needs the network again.
 - **Web (GitHub Pages):** <https://maedoc.github.io/furevrnac/>
 - **Offline:** add to home screen / install as PWA — the service worker
   caches everything after the first visit.
-- **Packaged app (later):** Capacitor wraps the same build for iOS and
-  Android; artifacts will be attached to GitHub Releases on version tags.
+- **Packaged app:** Capacitor wraps the same build for iOS and Android; see
+  [docs/packaging.md](docs/packaging.md). Android APK/AAB artifacts are
+  attached to GitHub Releases on `v*` tags.
 
 ## Development
 

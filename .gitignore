@@ -2,3 +2,17 @@ node_modules/
 dist/
 *.local
 .DS_Store
+
+# Capacitor native build artifacts
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/app/src/main/assets/public/
+ios/App/public/
+ios/App/Pods/
+ios/App/App/public/
+ios/DerivedData/
+ios/capacitor-cordova-ios-plugins/
+*.apk
+*.aab
