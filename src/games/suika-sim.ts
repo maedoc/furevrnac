@@ -7,6 +7,7 @@ export interface Fruit {
   tier: number;
   dead: boolean;
   justMerged: boolean;
+  everSettled: boolean;
 }
 
 export interface Tier {
@@ -62,6 +63,7 @@ export function drop(s: SimState, tier: number, x: number, topY: number): boolea
     tier,
     dead: false,
     justMerged: false,
+    everSettled: false,
   });
   s.dropCd = DROP_CD;
   return true;
@@ -88,6 +90,7 @@ function mergeFruits(s: SimState, a: Fruit, b: Fruit): void {
     tier: a.tier + 1,
     dead: false,
     justMerged: true,
+    everSettled: true,
   });
   s.score += TIERS[a.tier].score;
 }
@@ -161,9 +164,12 @@ export function step(
 
   s.fruits = s.fruits.filter((f) => !f.dead);
 
+  for (const f of s.fruits) {
+    if (f.y - f.r >= LOSS_Y) f.everSettled = true;
+  }
   if (s.time > 1) {
     for (const f of s.fruits) {
-      if (f.y - f.r < LOSS_Y && Math.abs(f.vy) < 4) {
+      if (f.everSettled && f.y - f.r < LOSS_Y) {
         s.over = true;
         s.shake = 0.4;
         return;

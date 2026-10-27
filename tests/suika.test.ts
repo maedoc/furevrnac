@@ -63,8 +63,8 @@ describe("suika sim", () => {
   it("two watermelons vanish with a bonus", () => {
     const s = initState();
     s.fruits.push(
-      { x: 4, y: 13, vx: 0, vy: 0, r: TIERS[7].r, tier: 7, dead: false, justMerged: false },
-      { x: 6.5, y: 13, vx: 0, vy: 0, r: TIERS[7].r, tier: 7, dead: false, justMerged: false },
+      { x: 4, y: 13, vx: 0, vy: 0, r: TIERS[7].r, tier: 7, dead: false, justMerged: false, everSettled: true },
+      { x: 6.5, y: 13, vx: 0, vy: 0, r: TIERS[7].r, tier: 7, dead: false, justMerged: false, everSettled: true },
     );
     stepSeconds(s, 1, bounds);
     expect(s.fruits.length).toBe(0);
@@ -74,9 +74,9 @@ describe("suika sim", () => {
   it("chain merges: dropping onto a pair cascades", () => {
     const s = initState();
     s.fruits.push(
-      { x: 4, y: 12.8, vx: 0, vy: 0, r: TIERS[1].r, tier: 1, dead: false, justMerged: false },
-      { x: 5.7, y: 12.8, vx: 0, vy: 0, r: TIERS[1].r, tier: 1, dead: false, justMerged: false },
-      { x: 6.9, y: 12.8, vx: 0, vy: 0, r: TIERS[0].r, tier: 0, dead: false, justMerged: false },
+      { x: 4, y: 12.8, vx: 0, vy: 0, r: TIERS[1].r, tier: 1, dead: false, justMerged: false, everSettled: true },
+      { x: 5.7, y: 12.8, vx: 0, vy: 0, r: TIERS[1].r, tier: 1, dead: false, justMerged: false, everSettled: true },
+      { x: 6.9, y: 12.8, vx: 0, vy: 0, r: TIERS[0].r, tier: 0, dead: false, justMerged: false, everSettled: true },
     );
     s.dropCd = 0;
     drop(s, 0, 6.1, 10);
