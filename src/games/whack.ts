@@ -4,6 +4,7 @@ import {
   inkText,
   speechBubble,
   speedLines,
+  hexWithAlpha,
 } from "../engine/style";
 import { sfx } from "../engine/sfx";
 import {
@@ -194,7 +195,7 @@ export class WhackGame implements Game {
     inkText(ctx, `missed ${s.misses}`, w * 0.75, h * 0.125, sv * 0.026, PALETTE.gray);
 
     if (s.over) {
-      ctx.fillStyle = `rgba(246,241,231,${Math.min(0.85, this.overT / 400)})`;
+      ctx.fillStyle = hexWithAlpha(PALETTE.paper, Math.min(0.85, this.overT / 400));
       ctx.fillRect(0, 0, w, h);
       if (this.overT > 400) {
         speedLines(ctx, w / 2, h / 2, sv * 0.25, Math.max(w, h) * 0.75, 0.5, 36);

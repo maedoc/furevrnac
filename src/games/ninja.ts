@@ -6,6 +6,7 @@ import {
   speechBubble,
   speedLines,
   halftonePattern,
+  hexWithAlpha,
 } from "../engine/style";
 import { sfx } from "../engine/sfx";
 import {
@@ -353,7 +354,7 @@ export class NinjaGame implements Game {
       inkText(ctx, "hold left = slow time · tap right = jump · tap in air = dash", w / 2, h * 0.38, sv * 0.026, PALETTE.gray);
     }
     if (this.phase === "dead") {
-      ctx.fillStyle = "rgba(246,241,231,0.6)";
+      ctx.fillStyle = hexWithAlpha(PALETTE.paper, 0.6);
       ctx.fillRect(0, 0, w, h);
       speechBubble(ctx, "Again!", w / 2, h * 0.45, sv * 0.06);
     }
@@ -363,7 +364,7 @@ export class NinjaGame implements Game {
       inkText(ctx, `${s?.player.wonT.toFixed(1)}s`, w / 2, h * 0.52, sv * 0.04, this.accent);
     }
     if (this.phase === "alldone") {
-      ctx.fillStyle = "rgba(246,241,231,0.85)";
+      ctx.fillStyle = hexWithAlpha(PALETTE.paper, 0.85);
       ctx.fillRect(0, 0, w, h);
       speedLines(ctx, w / 2, h / 2, sv * 0.25, Math.max(w, h) * 0.75, 0.5, 36);
       speechBubble(ctx, "All chapters cleared — ninja master!", w / 2, h * 0.45, sv * 0.05);

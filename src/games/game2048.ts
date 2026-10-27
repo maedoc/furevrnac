@@ -5,6 +5,7 @@ import {
   inkText,
   speechBubble,
   speedLines,
+  hexWithAlpha,
 } from "../engine/style";
 import { sfx } from "../engine/sfx";
 
@@ -165,8 +166,8 @@ export class Game2048 implements Game {
 
     const tileColor = (v: number): string => {
       if (v <= 4) return PALETTE.white;
-      if (v <= 64) return "#eed9c4";
-      if (v <= 512) return "#e8b98a";
+      if (v <= 64) return PALETTE.tint2;
+      if (v <= 512) return PALETTE.tint3;
       return "#d43d2a";
     };
 
@@ -192,7 +193,7 @@ export class Game2048 implements Game {
     inkText(ctx, `Best ${this.best}`, w / 2, h - s * 0.04, s * 0.035, PALETTE.gray);
 
     if (this.over) {
-      ctx.fillStyle = "rgba(246,241,231,0.85)";
+      ctx.fillStyle = hexWithAlpha(PALETTE.paper, 0.85);
       ctx.fillRect(0, 0, w, h);
       speedLines(ctx, w / 2, h / 2, s * 0.25, Math.max(w, h) * 0.75, 0.5, 36);
       speechBubble(ctx, `The page is full — ${this.score}`, w / 2, h / 2, s * 0.06);

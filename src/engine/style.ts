@@ -4,7 +4,11 @@ export const PALETTE = {
   accent: "#d43d2a",
   gray: "#b8b2a8",
   white: "#fffdf8",
-} as const;
+  tint1: "#e8e0d0",
+  tint2: "#eed9c4",
+  tint3: "#e8b98a",
+  wood: "#e8dcbf",
+};
 
 export const FONT_STACK = `"Zen Maru Gothic", "Hiragino Sans", "Segoe UI", system-ui, sans-serif`;
 
@@ -154,4 +158,11 @@ export function inkSplash(
   ctx.arc(x, y, r * 0.5, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
+}
+
+export function hexWithAlpha(hex: string, alpha: number): string {
+  const a = Math.round(Math.max(0, Math.min(1, alpha)) * 255)
+    .toString(16)
+    .padStart(2, "0");
+  return `${hex}${a}`;
 }

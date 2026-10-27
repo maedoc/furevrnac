@@ -112,7 +112,7 @@ export class CheckersGame implements Game {
     inkRect(ctx, ox - 6, oy - 6, cell * 8 + 12, cell * 8 + 12, PALETTE.white, PALETTE.ink, 4);
     for (let y = 0; y < 8; y++)
       for (let x = 0; x < 8; x++) {
-        ctx.fillStyle = (x + y) % 2 === 0 ? PALETTE.paper : "#e8e0d0";
+        ctx.fillStyle = (x + y) % 2 === 0 ? PALETTE.paper : PALETTE.tint1;
         ctx.fillRect(ox + x * cell, oy + y * cell, cell, cell);
         if (this.last) {
           const [fx, fy] = this.last.from;

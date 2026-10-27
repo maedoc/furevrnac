@@ -6,6 +6,7 @@ import {
   inkText,
   speechBubble,
   speedLines,
+  hexWithAlpha,
 } from "../engine/style";
 
 const ROWS = 6;
@@ -150,7 +151,7 @@ export class BreakoutGame implements Game {
     for (let y = 0; y < ROWS; y++) {
       for (let x = 0; x < COLS; x++) {
         if (!this.bricks[y][x]) continue;
-        const fill = y < 2 ? this.accent : y < 4 ? "#eed9c4" : PALETTE.white;
+        const fill = y < 2 ? this.accent : y < 4 ? PALETTE.tint2 : PALETTE.white;
         inkRect(ctx, w * 0.02 + x * bw, fieldTop + h * 0.04 + y * bh, bw - 3, bh - 4, fill, PALETTE.ink, 2.5);
       }
     }
@@ -180,13 +181,13 @@ export class BreakoutGame implements Game {
     if (this.state === "ready") {
       speechBubble(ctx, "tap to launch", w / 2, h * 0.6, Math.min(w, h) * 0.05);
     } else if (this.state === "dead") {
-      ctx.fillStyle = "rgba(246,241,231,0.85)";
+      ctx.fillStyle = hexWithAlpha(PALETTE.paper, 0.85);
       ctx.fillRect(0, 0, w, h);
       speedLines(ctx, w / 2, h / 2, Math.min(w, h) * 0.25, Math.max(w, h) * 0.75, 0.5, 36);
       speechBubble(ctx, `Ink spilled — ${this.score}`, w / 2, h / 2, Math.min(w, h) * 0.055);
       inkText(ctx, "tap to return", w / 2, h * 0.62, Math.min(w, h) * 0.035, PALETTE.gray);
     } else if (this.state === "clear") {
-      ctx.fillStyle = "rgba(246,241,231,0.85)";
+      ctx.fillStyle = hexWithAlpha(PALETTE.paper, 0.85);
       ctx.fillRect(0, 0, w, h);
       speedLines(ctx, w / 2, h / 2, Math.min(w, h) * 0.25, Math.max(w, h) * 0.75, 0.5, 36);
       speechBubble(ctx, `Chapter cleared! ${this.score}`, w / 2, h / 2, Math.min(w, h) * 0.055);

@@ -7,6 +7,7 @@ import {
   inkSplash,
   speedLines,
   speechBubble,
+  hexWithAlpha,
 } from "../engine/style";
 
 const COLS = 17;
@@ -200,7 +201,7 @@ export class SnakeGame implements Game {
     inkText(ctx, `Best ${this.best}`, w / 2, h - pad * 0.35, Math.min(w, h) * 0.035, PALETTE.gray);
 
     if (!this.alive) {
-      ctx.fillStyle = "rgba(246,241,231,0.85)";
+      ctx.fillStyle = hexWithAlpha(PALETTE.paper, 0.85);
       ctx.fillRect(0, 0, w, h);
       speedLines(ctx, w / 2, h / 2, Math.min(w, h) * 0.25, Math.max(w, h) * 0.75, 0.5, 36);
       speechBubble(ctx, `The brush rests — ${this.score}`, w / 2, h / 2, Math.min(w, h) * 0.06);

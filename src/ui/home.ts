@@ -6,6 +6,7 @@ import {
   halftonePattern,
 } from "../engine/style";
 import type { Input, InputEvent } from "../engine/input";
+import { cycleTheme, isDark } from "../engine/theme";
 
 interface CardDims {
   w: number;
@@ -15,6 +16,7 @@ interface CardDims {
 }
 
 export class HomeScreen {
+  private toggleR = { x: 0, y: 0, r: 0 };
   private scroll = 0;
   private velocity = 0;
   private maxScroll = 0;
@@ -59,6 +61,11 @@ export class HomeScreen {
     }
 
     if (tapCandidate) {
+      const t = this.toggleR;
+      if (Math.hypot(tapCandidate.x - t.x, tapCandidate.y - t.y) < t.r * 1.6) {
+        cycleTheme();
+        return;
+      }
       const y = tapCandidate.y + this.scroll;
       let idx = Math.floor((y - this.dims.top + gap) / (ch + gap));
       if (idx < 0) idx = 0;
@@ -98,6 +105,39 @@ export class HomeScreen {
     inkText(ctx, "FUREVRNAC", 1.5, 1.5, s * 0.075, "rgba(212,61,42,0.35)", "900");
     ctx.restore();
     inkText(ctx, "the forever almanac", w / 2, h * 0.135, s * 0.032, PALETTE.gray);
+
+    // theme toggle (top-right): sun/moon ink disc
+    this.toggleR = { x: w - s * 0.07, y: h * 0.075, r: s * 0.045 };
+    ctx.beginPath();
+    ctx.arc(this.toggleR.x, this.toggleR.y, this.toggleR.r, 0, Math.PI * 2);
+    ctx.fillStyle = PALETTE.white;
+    ctx.fill();
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+    const dark = isDark();
+    if (dark) {
+      // crescent moon
+      ctx.beginPath();
+      ctx.arc(this.toggleR.x, this.toggleR.y, this.toggleR.r * 0.55, 0, Math.PI * 2);
+      ctx.fillStyle = PALETTE.ink;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(this.toggleR.x + this.toggleR.r * 0.28, this.toggleR.y - this.toggleR.r * 0.12, this.toggleR.r * 0.5, 0, Math.PI * 2);
+      ctx.fillStyle = PALETTE.white;
+      ctx.fill();
+    } else {
+      // sun rays
+      ctx.strokeStyle = PALETTE.ink;
+      ctx.lineWidth = 2;
+      for (let k = 0; k < 8; k++) {
+        const a = (k / 8) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.moveTo(this.toggleR.x + Math.cos(a) * this.toggleR.r * 0.55, this.toggleR.y + Math.sin(a) * this.toggleR.r * 0.55);
+        ctx.lineTo(this.toggleR.x + Math.cos(a) * this.toggleR.r * 0.85, this.toggleR.y + Math.sin(a) * this.toggleR.r * 0.85);
+        ctx.stroke();
+      }
+    }
     ctx.strokeStyle = PALETTE.accent;
     ctx.lineWidth = 4;
     ctx.beginPath();

@@ -1,5 +1,7 @@
 import type { Game, GameContext } from "./types";
-import { PALETTE, inkRect, inkText, speechBubble } from "../engine/style";
+import { PALETTE, inkRect, inkText, speechBubble,
+  hexWithAlpha,
+} from "../engine/style";
 import { sfx } from "../engine/sfx";
 import {
   boardKey,
@@ -154,7 +156,7 @@ export class GoGame implements Game {
     }
 
     const { ox, oy, cell } = this.geo(g);
-    inkRect(ctx, ox - 8, oy - 8, cell * this.size + 16, cell * this.size + 16, "#e8dcbf", PALETTE.ink, 4);
+    inkRect(ctx, ox - 8, oy - 8, cell * this.size + 16, cell * this.size + 16, PALETTE.wood, PALETTE.ink, 4);
 
     ctx.strokeStyle = PALETTE.ink;
     ctx.lineWidth = 1.5;
@@ -255,7 +257,7 @@ export class GoGame implements Game {
       const diff = Math.abs(this.score.black - this.score.white).toFixed(1);
       const winnerName =
         this.score.black > this.score.white ? "Black" : "White";
-      ctx.fillStyle = "rgba(246,241,231,0.85)";
+      ctx.fillStyle = hexWithAlpha(PALETTE.paper, 0.85);
       ctx.fillRect(0, 0, w, h);
       speechBubble(
         ctx,

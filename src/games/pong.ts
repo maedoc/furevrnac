@@ -1,5 +1,7 @@
 import type { Game, GameContext } from "./types";
-import { PALETTE, inkRect, inkText, speechBubble, speedLines } from "../engine/style";
+import { PALETTE, inkRect, inkText, speechBubble, speedLines,
+  hexWithAlpha,
+} from "../engine/style";
 import { sfx } from "../engine/sfx";
 
 export class PongGame implements Game {
@@ -236,7 +238,7 @@ export class PongGame implements Game {
     if (this.state === "serve")
       speechBubble(ctx, "tap or drag to serve", w / 2, h * 0.55, s * 0.05);
     else if (this.state === "over") {
-      ctx.fillStyle = "rgba(246,241,231,0.85)";
+      ctx.fillStyle = hexWithAlpha(PALETTE.paper, 0.85);
       ctx.fillRect(0, 0, w, h);
       speedLines(ctx, w / 2, h / 2, s * 0.25, Math.max(w, h) * 0.75, 0.5, 36);
       const leftName = this.twoPlayer ? "Left" : "You";

@@ -1,5 +1,7 @@
 import type { Game, GameContext } from "./types";
-import { PALETTE, inkRect, inkText, speechBubble, speedLines } from "../engine/style";
+import { PALETTE, inkRect, inkText, speechBubble, speedLines,
+  hexWithAlpha,
+} from "../engine/style";
 import { sfx } from "../engine/sfx";
 import {
   applyMove,
@@ -162,7 +164,7 @@ export class ChessGame implements Game {
     for (let y = 0; y < 8; y++) {
       for (let x = 0; x < 8; x++) {
         const light = (x + y) % 2 === 0;
-        ctx.fillStyle = light ? PALETTE.paper : "#e8e0d0";
+        ctx.fillStyle = light ? PALETTE.paper : PALETTE.tint1;
         ctx.fillRect(ox + x * cell, oy + y * cell, cell, cell);
         if (this.last) {
           const [fx, fy] = this.last.from;
@@ -230,7 +232,7 @@ export class ChessGame implements Game {
     inkText(ctx, `${Math.ceil(this.moveCount / 2)} moves`, w / 2, h * 0.965, s * 0.03, PALETTE.gray);
 
     if (this.promoPick) {
-      ctx.fillStyle = "rgba(246,241,231,0.6)";
+      ctx.fillStyle = hexWithAlpha(PALETTE.paper, 0.6);
       ctx.fillRect(0, 0, w, h);
       const { moves, to } = this.promoPick;
       const [tx, ty] = to;

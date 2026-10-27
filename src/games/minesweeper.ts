@@ -1,5 +1,7 @@
 import type { Game, GameContext } from "./types";
-import { PALETTE, inkRect, inkText, speechBubble, speedLines } from "../engine/style";
+import { PALETTE, inkRect, inkText, speechBubble, speedLines,
+  hexWithAlpha,
+} from "../engine/style";
 import { sfx } from "../engine/sfx";
 
 const SIZE = 10;
@@ -167,7 +169,7 @@ export class MinesweeperGame implements Game {
             inkText(ctx, String(c.count), px + cell / 2, py + cell / 2, cell * 0.5, colors[c.count], "900");
           }
         } else {
-          inkRect(ctx, px + 1.5, py + 1.5, cell - 3, cell - 3, c.flagged ? "#eed9c4" : PALETTE.white, PALETTE.ink, 2);
+          inkRect(ctx, px + 1.5, py + 1.5, cell - 3, cell - 3, c.flagged ? PALETTE.tint2 : PALETTE.white, PALETTE.ink, 2);
           if (c.flagged) {
             ctx.fillStyle = this.accent;
             ctx.beginPath();
@@ -189,7 +191,7 @@ export class MinesweeperGame implements Game {
     inkText(ctx, `${Math.round(this.time / 1000)}s  best ${this.best || "—"}`, w / 2, h * 0.955, s * 0.032, PALETTE.gray);
 
     if (this.state === "dead" || this.state === "clear") {
-      ctx.fillStyle = "rgba(246,241,231,0.85)";
+      ctx.fillStyle = hexWithAlpha(PALETTE.paper, 0.85);
       ctx.fillRect(0, 0, w, h);
       speedLines(ctx, w / 2, h / 2, s * 0.25, Math.max(w, h) * 0.75, 0.5, 36);
       speechBubble(

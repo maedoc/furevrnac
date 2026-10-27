@@ -6,6 +6,7 @@ import {
   inkText,
   speechBubble,
   speedLines,
+  hexWithAlpha,
 } from "../engine/style";
 
 const COLS = 10;
@@ -200,37 +201,161 @@ export class TetrominoGame implements Game {
 
     inkRect(ctx, ox - 5, oy - 5, cell * COLS + 10, cell * ROWS + 10, PALETTE.white, PALETTE.ink, 4);
 
+    // one distinct color per piece kind (7 types), theme-aware
     const kindFill = (k: number): string => {
-      const fills = ["#fffdf8", "#eed9c4", "#d43d2a", "#e8b98a", "#f6f1e7", "#eed9c4", "#e8b98a"];
+      const fills = [
+        PALETTE.accent, // I: vermillion
+        PALETTE.tint2, // O: cream
+        PALETTE.tint3, // T: ochre
+        PALETTE.gray, // S: gray
+        PALETTE.tint1, // Z: subtle
+        "#8db052", // L: leaf green (fixed, reads on both themes)
+        "#5a7ea3", // J: steel blue (fixed, reads on both themes)
+      ];
       return fills[(k - 1) % fills.length];
     };
 
+    // faint grid instead of per-cell boxes
+    ctx.strokeStyle = PALETTE.gray;
+    ctx.globalAlpha = 0.25;
+    ctx.lineWidth = 1;
+    for (let x = 1; x < COLS; x++) {
+      ctx.beginPath();
+      ctx.moveTo(ox + x * cell, oy);
+      ctx.lineTo(ox + x * cell, oy + ROWS * cell);
+      ctx.stroke();
+    }
+    for (let y = 1; y < ROWS; y++) {
+      ctx.beginPath();
+      ctx.moveTo(ox, oy + y * cell);
+      ctx.lineTo(ox + COLS * cell, oy + y * cell);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    // filled cells, no borders; silhouette stroke only around piece edges
     const drawCell = (x: number, y: number, k: number, ghost = false): void => {
+      if (k === 0) return;
+      if (this.clearFlash.includes(y)) return;
       const px = ox + x * cell;
       const py = oy + y * cell;
-      if (this.clearFlash.includes(y)) return;
       ctx.save();
-      if (ghost) ctx.globalAlpha = 0.25;
-      inkRect(ctx, px + 1, py + 1, cell - 2, cell - 2, k === 0 ? PALETTE.paper : kindFill(k), PALETTE.ink, 2);
+      if (ghost) {
+        ctx.globalAlpha = 0.28;
+        ctx.fillStyle = kindFill(k);
+        ctx.fillRect(px + 1, py + 1, cell - 2, cell - 2);
+      } else {
+        ctx.fillStyle = kindFill(k);
+        ctx.fillRect(px, py, cell, cell);
+        // subtle inner highlight
+        ctx.fillStyle = "rgba(255,255,255,0.18)";
+        ctx.fillRect(px, py, cell, cell * 0.25);
+      }
       ctx.restore();
     };
 
+    // board cells
     for (let y = 0; y < ROWS; y++) {
       for (let x = 0; x < COLS; x++) {
         drawCell(x, y, this.board[y][x]);
       }
     }
 
+    // stroke the outline of each locked piece-run for the ink look
+    const isSet = (x: number, y: number): boolean =>
+      x >= 0 && x < COLS && y >= 0 && y < ROWS && this.board[y][x] !== 0;
+    const isSetGhost = (x: number, y: number): boolean =>
+      x >= 0 && x < COLS && y >= 0 && y < ROWS && this.board[y][x] !== 0;
+    void isSetGhost;
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.lineWidth = 2.5;
+    ctx.lineJoin = "round";
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) {
+        if (!isSet(x, y)) continue;
+        if (this.clearFlash.includes(y)) continue;
+        const px = ox + x * cell;
+        const py = oy + y * cell;
+        // draw only outer edges of the block run
+        if (!isSet(x, y - 1)) {
+          ctx.beginPath();
+          ctx.moveTo(px, py);
+          ctx.lineTo(px + cell, py);
+          ctx.stroke();
+        }
+        if (!isSet(x, y + 1)) {
+          ctx.beginPath();
+          ctx.moveTo(px, py + cell);
+          ctx.lineTo(px + cell, py + cell);
+          ctx.stroke();
+        }
+        if (!isSet(x - 1, y)) {
+          ctx.beginPath();
+          ctx.moveTo(px, py);
+          ctx.lineTo(px, py + cell);
+          ctx.stroke();
+        }
+        if (!isSet(x + 1, y)) {
+          ctx.beginPath();
+          ctx.moveTo(px + cell, py);
+          ctx.lineTo(px + cell, py + cell);
+          ctx.stroke();
+        }
+      }
+    }
+
     if (this.piece) {
-      let gy = this.piece.y;
-      while (!this.collides(this.piece.shape, this.piece.x, gy)) gy++;
+      const p = this.piece;
+      let gy = p.y;
+      while (!this.collides(p.shape, p.x, gy)) gy++;
       gy--;
-      for (let y = 0; y < this.piece.shape.length; y++) {
-        for (let x = 0; x < this.piece.shape[y].length; x++) {
-          if (!this.piece.shape[y][x]) continue;
-          if (gy + y >= 0) drawCell(this.piece.x + x, gy + y, 1, true);
-          if (this.piece.y + y >= 0)
-            drawCell(this.piece.x + x, this.piece.y + y, this.piece.kind + 1);
+      const inShape = (x: number, y: number): boolean =>
+        y >= 0 &&
+        y < p.shape.length &&
+        x >= 0 &&
+        x < p.shape[y].length &&
+        p.shape[y][x] !== 0;
+      for (let y = 0; y < p.shape.length; y++) {
+        for (let x = 0; x < p.shape[y].length; x++) {
+          if (!p.shape[y][x]) continue;
+          if (gy + y >= 0) drawCell(p.x + x, gy + y, p.kind + 1, true);
+          if (p.y + y >= 0) drawCell(p.x + x, p.y + y, p.kind + 1);
+        }
+      }
+      // ink outline around the active piece silhouette
+      ctx.strokeStyle = PALETTE.ink;
+      ctx.lineWidth = 2.5;
+      ctx.lineJoin = "round";
+      for (let y = 0; y < p.shape.length; y++) {
+        for (let x = 0; x < p.shape[y].length; x++) {
+          if (!p.shape[y][x]) continue;
+          const px = ox + (p.x + x) * cell;
+          const py = oy + (p.y + y) * cell;
+          if (p.y + y < 0) continue;
+          if (!inShape(x, y - 1) || p.y + y - 1 < 0) {
+            ctx.beginPath();
+            ctx.moveTo(px, py);
+            ctx.lineTo(px + cell, py);
+            ctx.stroke();
+          }
+          if (!inShape(x, y + 1)) {
+            ctx.beginPath();
+            ctx.moveTo(px, py + cell);
+            ctx.lineTo(px + cell, py + cell);
+            ctx.stroke();
+          }
+          if (!inShape(x - 1, y)) {
+            ctx.beginPath();
+            ctx.moveTo(px, py);
+            ctx.lineTo(px, py + cell);
+            ctx.stroke();
+          }
+          if (!inShape(x + 1, y)) {
+            ctx.beginPath();
+            ctx.moveTo(px + cell, py);
+            ctx.lineTo(px + cell, py + cell);
+            ctx.stroke();
+          }
         }
       }
     }
@@ -244,7 +369,7 @@ export class TetrominoGame implements Game {
     inkText(ctx, `Lines ${this.lines}  Best ${this.best}`, w / 2, h - s * 0.03, s * 0.032, PALETTE.gray);
 
     if (this.over) {
-      ctx.fillStyle = "rgba(246,241,231,0.85)";
+      ctx.fillStyle = hexWithAlpha(PALETTE.paper, 0.85);
       ctx.fillRect(0, 0, w, h);
       speedLines(ctx, w / 2, h / 2, s * 0.25, Math.max(w, h) * 0.75, 0.5, 36);
       speechBubble(ctx, `The stack overflows — ${this.score}`, w / 2, h / 2, s * 0.055);

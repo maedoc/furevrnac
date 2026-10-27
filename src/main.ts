@@ -1,6 +1,7 @@
 import { TouchInput } from "./engine/input";
 import { createSave } from "./engine/save";
 import { PALETTE } from "./engine/style";
+import { initTheme } from "./engine/theme";
 import { GAMES } from "./games";
 import type { Game, GameContext } from "./games/types";
 import { HomeScreen } from "./ui/home";
@@ -10,6 +11,7 @@ const ctx = canvas.getContext("2d")!;
 const input = new TouchInput(canvas);
 const save = createSafeStorage();
 const home = new HomeScreen();
+initTheme();
 home.setGames(GAMES);
 
 let w = 0;
