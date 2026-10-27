@@ -31,7 +31,8 @@ export class SuikaGame implements Game {
   private sim: SimState = initState();
   private queue: number[] = [];
   private aimX = WORLD_W / 2;
-  private dragging = false;
+  private wasHeld = false;
+  private heldAny = false;
   private best = 0;
   private overT = 0;
   private newBest = false;
@@ -77,10 +78,21 @@ export class SuikaGame implements Game {
           WORLD_W - 0.6,
           Math.max(0.6, (e.x - ox) / scale),
         );
-        if (e.type === "drag") this.dragging = true;
       }
     }
-    if (!g.input.isPointerDown()) this.dragging = false;
+
+    const held = g.input.isPointerDown();
+    if (held) {
+      this.wasHeld = true;
+      const pos = g.input.pointerPos();
+      this.aimX = Math.min(
+        WORLD_W - 0.6,
+        Math.max(0.6, (pos.x - ox) / scale),
+      );
+    } else if (this.wasHeld) {
+      this.wasHeld = false;
+      this.heldAny = true;
+    }
 
     const wasOver = s.over;
     if (!s.over) {
@@ -119,6 +131,10 @@ export class SuikaGame implements Game {
     if (s.over) this.overT += dt;
 
     if (this.queue.length < 3) this.refillQueue();
+    if (this.heldAny) {
+      this.heldAny = false;
+      this.tryDrop();
+    }
   }
 
   private tryDrop(): void {
@@ -225,12 +241,6 @@ export class SuikaGame implements Game {
         inkText(ctx, "tap to return", w / 2, h * 0.56, sv * 0.035, PALETTE.gray);
         if (this.overT > 800 && g.input.consumeEvents().length > 0) g.exit();
       }
-    } else {
-      if (g.input.isPointerDown() && !this.dragging) this.tryDrop();
-      if (this.dragging && !g.input.isPointerDown()) {
-        this.tryDrop();
-        this.dragging = false;
-      }
     }
   }
 
@@ -278,6 +288,7 @@ export class SuikaGame implements Game {
   }
 
   teardown(): void {
-    this.dragging = false;
+    this.wasHeld = false;
+    this.heldAny = false;
   }
 }

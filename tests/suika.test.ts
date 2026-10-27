@@ -103,6 +103,16 @@ describe("suika sim", () => {
     expect(s.over).toBe(true);
   });
 
+  it("a freshly dropped fruit above the line does not end the game", () => {
+    const s = initState();
+    for (let i = 0; i < 3; i++) {
+      stepSeconds(s, DROP_CD + 0.05, bounds);
+      drop(s, 1, 2 + i * 3, 1.2);
+      step(s, 1 / 60, bounds);
+      expect(s.over).toBe(false);
+    }
+  });
+
   it("a quiet early game does not end prematurely", () => {
     const s = initState();
     drop(s, 1, 5, 2);

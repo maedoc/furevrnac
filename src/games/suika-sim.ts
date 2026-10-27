@@ -163,7 +163,7 @@ export function step(
 
   if (s.time > 1) {
     for (const f of s.fruits) {
-      if (f.y - f.r < LOSS_Y) {
+      if (f.y - f.r < LOSS_Y && Math.abs(f.vy) < 4) {
         s.over = true;
         s.shake = 0.4;
         return;
