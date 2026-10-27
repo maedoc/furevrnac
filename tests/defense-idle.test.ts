@@ -9,12 +9,12 @@ import {
   stepSeconds,
 } from "../src/games/invaders-sim";
 import {
-  PATH,
+  LANE_LEN,
   TOWER_COST,
-  canPlace,
+  TOWER_SLOTS,
   initState as towerInit,
-  pathPos,
   placeTower,
+  step as towerStep,
   stepSeconds as towerStepSeconds,
 } from "../src/games/tower-sim";
 import {
@@ -108,76 +108,105 @@ describe("invaders sim", () => {
   });
 });
 
-describe("tower sim", () => {
-  it("towers cannot be placed on the path", () => {
+describe("tower sim (pseudo-3D depth model)", () => {
+  it("towers only place on valid slots and sides, without overlap", () => {
     const s = towerInit();
-    const onPath = PATH[1];
-    expect(canPlace(s, onPath[0], onPath[1])).toBe(false);
-    expect(canPlace(s, 0, 6)).toBe(true);
+    s.gold = 1000;
+    expect(placeTower(s, 8, -1)).toBe(true);
+    expect(placeTower(s, 8, -1)).toBe(false); // same slot/side taken
+    expect(placeTower(s, 8, 1)).toBe(true); // other side ok
+    expect(placeTower(s, 9, 1)).toBe(false); // not a slot
   });
 
   it("placing a tower costs gold", () => {
     const s = towerInit();
     s.gold = 100;
-    expect(placeTower(s, 0, 6)).toBe(true);
+    expect(placeTower(s, 8, -1)).toBe(true);
     expect(s.gold).toBe(100 - TOWER_COST[0]);
-    expect(s.towers.length).toBe(1);
   });
 
-  it("enemies walk the path and leak damage", () => {
+  it("enemies march toward the base and leak damage on arrival", () => {
     const s = towerInit();
     s.betweenWaves = false;
     s.spawnQueue = 0;
     s.enemies.push({
-      pathIdx: PATH.length - 2,
-      t: 0.95,
+      z: LANE_LEN - 1,
       hp: 10,
       maxHp: 10,
+      speed: 2,
+      kind: 0,
+      dead: false,
+      slowT: 0,
+    });
+    const lives0 = s.lives;
+    towerStepSeconds(s, 2, rng);
+    expect(s.enemies.length).toBe(0);
+    expect(s.lives).toBe(lives0 - 1);
+  });
+
+  it("a tower kills an approaching enemy and grants gold", () => {
+    const s = towerInit();
+    s.towers.push({ z: 20, side: -1, kind: 0, cd: 0 });
+    s.betweenWaves = false;
+    s.spawnQueue = 0;
+    s.enemies.push({
+      z: 15,
+      hp: 3,
+      maxHp: 3,
       speed: 1,
       kind: 0,
       dead: false,
-    });
-    const lives0 = s.lives;
-    towerStepSeconds(s, 3, rng);
-    expect(s.enemies.length).toBe(0);
-    expect(s.lives).toBeLessThan(lives0);
-  });
-
-  it("a tower shoots enemies in range and kills grant gold", () => {
-    const s = towerInit();
-    s.towers.push({ x: 2, y: 3, kind: 0, cd: 0 });
-    s.betweenWaves = false;
-    s.spawnQueue = 0;
-    // enemy entering range on the path
-    s.enemies.push({
-      pathIdx: 0,
-      t: 0.4,
-      hp: 1,
-      maxHp: 1,
-      speed: 0.1,
-      kind: 0,
-      dead: false,
+      slowT: 0,
     });
     const gold0 = s.gold;
-    towerStepSeconds(s, 4, rng);
+    towerStepSeconds(s, 6, rng);
     expect(s.enemies.length).toBe(0);
     expect(s.gold).toBeGreaterThan(gold0);
   });
 
-  it("waves escalate and pay between-wave bonuses", () => {
+  it("frost towers slow enemies", () => {
     const s = towerInit();
-    s.gold = 500;
+    s.towers.push({ z: 10, side: -1, kind: 2, cd: 0 });
+    s.betweenWaves = false;
+    s.spawnQueue = 0;
+    s.enemies.push({
+      z: 12,
+      hp: 100,
+      maxHp: 100,
+      speed: 2,
+      kind: 0,
+      dead: false,
+      slowT: 0,
+    });
+    towerStep(s, 0.5, rng);
+    expect(s.enemies[0].slowT).toBeGreaterThan(0);
+  });
+
+  it("waves escalate and pay bonuses", () => {
+    const s = towerInit();
     s.waveT = 0.1;
     towerStepSeconds(s, 0.5, rng);
     expect(s.wave).toBe(1);
-    expect(s.spawnQueue).toBeGreaterThan(0);
+    expect(s.spawnQueue).toBeLessThanOrEqual(6); // spawns trickle out
   });
 
-  it("pathPos interpolates along segments", () => {
-    const e = { pathIdx: 0, t: 0.5, hp: 1, maxHp: 1, speed: 1, kind: 0 as const, dead: false };
-    const p = pathPos(e);
-    expect(p.x).toBe((-1 + 3) / 2);
-    expect(p.y).toBeCloseTo(2);
+  it("a reasonable opening can hold the first waves", () => {
+    const s = towerInit();
+    s.waveT = 0.1;
+    // player buys two arrow towers at mid slots as soon as affordable
+    let t = 0;
+    let guard = 0;
+    while (!s.over && guard++ < 20000) {
+      towerStep(s, 1 / 60, rng);
+      t += 1 / 60;
+      if (s.gold >= TOWER_COST[0] && s.towers.length < 2) {
+        const slot = TOWER_SLOTS[s.towers.length === 0 ? 1 : 2];
+        placeTower(s, slot, s.towers.length === 0 ? -1 : 1);
+      }
+      if (s.betweenWaves && s.wave >= 3) break;
+    }
+    expect(s.wave).toBeGreaterThanOrEqual(3);
+    expect(s.lives).toBeGreaterThan(0);
   });
 });
 
