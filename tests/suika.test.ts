@@ -63,8 +63,8 @@ describe("suika sim", () => {
   it("two watermelons vanish with a bonus", () => {
     const s = initState();
     s.fruits.push(
-      { x: 4, y: 13, vx: 0, vy: 0, r: TIERS[7].r, tier: 7, dead: false, justMerged: false, everSettled: true },
-      { x: 6.5, y: 13, vx: 0, vy: 0, r: TIERS[7].r, tier: 7, dead: false, justMerged: false, everSettled: true },
+      { x: 4, y: 13, vx: 0, vy: 0, r: TIERS[7].r, tier: 7, dead: false, justMerged: false, age: 1 },
+      { x: 6.5, y: 13, vx: 0, vy: 0, r: TIERS[7].r, tier: 7, dead: false, justMerged: false, age: 1 },
     );
     stepSeconds(s, 1, bounds);
     expect(s.fruits.length).toBe(0);
@@ -74,9 +74,9 @@ describe("suika sim", () => {
   it("chain merges: dropping onto a pair cascades", () => {
     const s = initState();
     s.fruits.push(
-      { x: 4, y: 12.8, vx: 0, vy: 0, r: TIERS[1].r, tier: 1, dead: false, justMerged: false, everSettled: true },
-      { x: 5.7, y: 12.8, vx: 0, vy: 0, r: TIERS[1].r, tier: 1, dead: false, justMerged: false, everSettled: true },
-      { x: 6.9, y: 12.8, vx: 0, vy: 0, r: TIERS[0].r, tier: 0, dead: false, justMerged: false, everSettled: true },
+      { x: 4, y: 12.8, vx: 0, vy: 0, r: TIERS[1].r, tier: 1, dead: false, justMerged: false, age: 1 },
+      { x: 5.7, y: 12.8, vx: 0, vy: 0, r: TIERS[1].r, tier: 1, dead: false, justMerged: false, age: 1 },
+      { x: 6.9, y: 12.8, vx: 0, vy: 0, r: TIERS[0].r, tier: 0, dead: false, justMerged: false, age: 1 },
     );
     s.dropCd = 0;
     drop(s, 0, 6.1, 10);
@@ -95,11 +95,16 @@ describe("suika sim", () => {
 
   it("stacking to the top ends the game", () => {
     const s = initState();
-    for (let i = 0; i < 1500; i++) {
+    // alternate two non-merging tiers at one spot: the stack must grow
+    // until a fruit settles above the loss line
+    let i = 0;
+    while (!s.over && s.time < 120) {
       step(s, 1 / 60, bounds);
-      if (canDrop(s)) drop(s, 4, 2 + (i % 3) * 3, 1);
+      if (canDrop(s)) {
+        drop(s, i % 2 === 0 ? 3 : 4, 5, 1);
+        i++;
+      }
     }
-    expect(s.fruits.length).toBeGreaterThan(0);
     expect(s.over).toBe(true);
   });
 

@@ -70,6 +70,7 @@ function gameContext(): GameContext {
 function frame(t: number): void {
   const dt = Math.min(t - last, 100);
   last = t;
+  fitIfNeeded();
   ctx.fillStyle = PALETTE.paper;
   ctx.fillRect(0, 0, w, h);
 
@@ -98,9 +99,24 @@ function start(): void {
   requestAnimationFrame(frame);
 }
 
+function fitIfNeeded(): void {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const cw = Math.round(w * dpr);
+  const ch = Math.round(h * dpr);
+  if (cw !== canvas.width || ch !== canvas.height) resize();
+}
 window.addEventListener("resize", resize);
 window.addEventListener("orientationchange", () => setTimeout(resize, 150));
+// iOS: the visual viewport resizes after toolbars/URL bar settle
+if (window.visualViewport) {
+  window.visualViewport.addEventListener("resize", resize);
+}
+// belt and suspenders: re-fit on any first drift (warm-cache paints
+// often measure before Safari settles the viewport)
+document.addEventListener("visibilitychange", resize);
+window.addEventListener("pageshow", resize);
 resize();
+setInterval(fitIfNeeded, 500);
 start();
 
 if ("serviceWorker" in navigator) {

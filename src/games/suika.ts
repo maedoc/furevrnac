@@ -271,14 +271,6 @@ export class SuikaGame implements Game {
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(t.glyph, px, py + r * 0.04);
-    // clementine vs orange: extra inner ring on clementine
-    if (tier === 2) {
-      ctx.strokeStyle = "rgba(212,61,42,0.7)";
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.arc(px, py, r * 0.62, 0, Math.PI * 2);
-      ctx.stroke();
-    }
     if (fresh) {
       ctx.strokeStyle = "#d43d2a";
       ctx.lineWidth = 3;

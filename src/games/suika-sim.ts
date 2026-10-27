@@ -7,7 +7,7 @@ export interface Fruit {
   tier: number;
   dead: boolean;
   justMerged: boolean;
-  everSettled: boolean;
+  age: number;
 }
 
 export interface Tier {
@@ -20,14 +20,14 @@ export interface Tier {
 }
 
 export const TIERS: Tier[] = [
-  { r: 0.55, score: 1, color: "#5a6ea3", leaf: "#2e6b4f", name: "myrtille", glyph: "🫐" },
-  { r: 0.8, score: 3, color: "#d43d2a", leaf: "#2e6b4f", name: "cherry", glyph: "🍒" },
-  { r: 1.05, score: 6, color: "#e8942a", leaf: "#2e6b4f", name: "clementine", glyph: "🍊" },
-  { r: 1.35, score: 10, color: "#e86a2a", leaf: "#2e6b4f", name: "orange", glyph: "🍊" },
-  { r: 1.7, score: 15, color: "#8db052", leaf: "#2e6b4f", name: "pomme", glyph: "🍎" },
-  { r: 2.1, score: 21, color: "#d4b02a", leaf: "#2e6b4f", name: "ananas", glyph: "🍍" },
-  { r: 2.6, score: 28, color: "#7aa852", leaf: "#2e6b4f", name: "melon", glyph: "🍈" },
-  { r: 3.2, score: 36, color: "#3f7a3a", leaf: "#2e6b4f", name: "watermelon", glyph: "🍉" },
+  { r: 0.385, score: 1, color: "#5a6ea3", leaf: "#2e6b4f", name: "myrtille", glyph: "🫐" },
+  { r: 0.56, score: 3, color: "#d43d2a", leaf: "#2e6b4f", name: "cherry", glyph: "🍒" },
+  { r: 0.735, score: 6, color: "#8a7a4a", leaf: "#2e6b4f", name: "kiwi", glyph: "🥝" },
+  { r: 0.945, score: 10, color: "#e86a2a", leaf: "#2e6b4f", name: "orange", glyph: "🍊" },
+  { r: 1.19, score: 15, color: "#8db052", leaf: "#2e6b4f", name: "pomme", glyph: "🍎" },
+  { r: 1.47, score: 21, color: "#d4b02a", leaf: "#2e6b4f", name: "ananas", glyph: "🍍" },
+  { r: 1.82, score: 28, color: "#7aa852", leaf: "#2e6b4f", name: "melon", glyph: "🍈" },
+  { r: 2.24, score: 36, color: "#3f7a3a", leaf: "#2e6b4f", name: "watermelon", glyph: "🍉" },
 ];
 
 export const GRAVITY = 60;
@@ -64,7 +64,7 @@ export function drop(s: SimState, tier: number, x: number, topY: number): boolea
     tier,
     dead: false,
     justMerged: false,
-    everSettled: false,
+    age: 0,
   });
   s.dropCd = DROP_CD;
   return true;
@@ -91,7 +91,7 @@ function mergeFruits(s: SimState, a: Fruit, b: Fruit): void {
     tier: a.tier + 1,
     dead: false,
     justMerged: true,
-    everSettled: true,
+    age: 1,
   });
   s.score += TIERS[a.tier].score;
 }
@@ -165,12 +165,16 @@ export function step(
 
   s.fruits = s.fruits.filter((f) => !f.dead);
 
-  for (const f of s.fruits) {
-    if (f.y - f.r >= LOSS_Y) f.everSettled = true;
-  }
+  for (const f of s.fruits) f.age += dt;
   if (s.time > 1) {
     for (const f of s.fruits) {
-      if (f.everSettled && f.y - f.r < LOSS_Y) {
+      // a fruit that has existed for > 1.5s of world time, is slow, and
+      // still pokes above the loss line means the stack has overflowed
+      if (
+        f.y - f.r < LOSS_Y &&
+        Math.abs(f.vy) < 3 &&
+        f.age > 1.5
+      ) {
         s.over = true;
         s.shake = 0.4;
         return;
