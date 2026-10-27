@@ -12,6 +12,7 @@ import { NinjaGame } from "./ninja";
 import { SuikaGame } from "./suika";
 import { RunnerGame } from "./runner";
 import { WhackGame } from "./whack";
+import { BowlingGame } from "./bowling";
 
 export const GAMES: Game[] = [
   new SnakeGame(),
@@ -27,4 +28,5 @@ export const GAMES: Game[] = [
   new SuikaGame(),
   new RunnerGame(),
   new WhackGame(),
+  new BowlingGame(),
 ];

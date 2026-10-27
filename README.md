@@ -28,6 +28,7 @@ after the first load it never needs the network again.
 | Ink Orchard | Drop and merge fruit — myrtille, cherry, kiwi … watermelon |
 | Ink Runner | Mario-run style — tap to jump the gaps, ninja cube |
 | Whack-a-Brush | 30s of popping ink imps — whack them fast |
+| Ink Bowling | Pseudo-3D lane, pull down to roll — 1-2 players, 10 frames |
 
 ## Play
 

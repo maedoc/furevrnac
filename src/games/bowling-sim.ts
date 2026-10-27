@@ -46,7 +46,7 @@ export interface SimState {
   frame: number; // 0-9
   roll: number; // roll within frame
   standingBefore: number;
-  scores: number[][]; // rolls per frame per player: [player][frame] = [r1, r2, ...]
+  scores: number[][][]; // rolls per frame per player: [player][frame] = [r1, r2, ...]
   gameOver: boolean;
 }
 
