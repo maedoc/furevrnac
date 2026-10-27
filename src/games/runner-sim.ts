@@ -112,6 +112,7 @@ export function genAhead(
   platforms: Platform[],
   upTo: number,
   rng: () => number,
+  playerX?: number,
 ): void {
   const MIN_GAP = 2.2;
   const MAX_GAP = 3.8;
@@ -127,7 +128,8 @@ export function genAhead(
     platforms.push({ x: lastEnd + gap, w, h });
     lastEnd = lastEnd + gap + w;
   }
-  // trim passed platforms
-  while (platforms.length > 2 && platforms[1].x + platforms[1].w < upTo - 30)
+  // trim platforms fully behind the player (never the one under/near them)
+  const behind = playerX === undefined ? upTo - 60 : playerX - 4;
+  while (platforms.length > 2 && platforms[1].x + platforms[1].w < behind)
     platforms.shift();
 }

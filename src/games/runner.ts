@@ -69,7 +69,7 @@ export class RunnerGame implements Game {
       }
     }
 
-    genAhead(this.platforms, s.dist + 60, Math.random);
+    genAhead(this.platforms, s.dist + 60, Math.random, s.dist + PLAYER_X);
 
     let t = 0;
     while (t < dt) {

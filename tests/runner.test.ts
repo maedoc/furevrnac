@@ -104,6 +104,22 @@ describe("runner sim", () => {
     expect(plats2).toEqual(plats);
   });
 
+  it("the starting platform is never trimmed while the player is on it", () => {
+    const plats = [{ x: -10, w: 18, h: 0 }];
+    let seed = 9;
+    const rng = () => {
+      seed = (seed * 16807) % 2147483647;
+      return seed / 2147483647;
+    };
+    for (let i = 0; i < 600; i++) {
+      genAhead(plats, i * 0.3 + 60, rng, i * 0.3 + PLAYER_X);
+      // a platform must always cover the player position
+      const px = i * 0.3 + PLAYER_X;
+      const covered = plats.some((p) => px >= p.x && px <= p.x + p.w);
+      if (i > 3 && px < 8) expect(covered).toBe(true);
+    }
+  });
+
   it("the sim is deterministic", () => {
     const run = () => {
       const s = initState();
