@@ -6,7 +6,7 @@ const FRICTION_PER_S = 0.985; // fraction of speed lost per second
 const PIN_FRICTION_PER_S = 0.6;
 const DOWN_V = 1.2; // pin speed above which it topples
 const WALL_BOUNCE = 0.4;
-const NOISE = 0.022; // radians of scatter per unit force
+const NOISE = 0.06; // radians of scatter at full force (risk!)
 
 export interface Ball {
   x: number;
@@ -105,7 +105,7 @@ export function throwBall(s: SimState, t: Throw, rng: () => number): void {
   if (s.phase !== "aim") return;
   const force = Math.max(0.1, Math.min(1, t.force));
   const speed = 14 + force * 26;
-  const scatter = (rng() * 2 - 1) * NOISE * force * 3;
+  const scatter = (rng() * 2 - 1) * NOISE * force;
   const angle = scatter + t.x * 0.08;
   s.ball = {
     x: (LANE_W / 2) + t.x * (LANE_W / 2 - BALL_R - 0.3),

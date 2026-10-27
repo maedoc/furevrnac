@@ -113,17 +113,18 @@ export class BowlingGame implements Game {
     // aim phase: pull down to charge, release to throw
     if (this.sim.phase === "aim") {
       for (const e of events) {
-        if (e.type === "tap" || e.type === "longpress") {
-          this.pulling = true;
-          this.pullStartY = e.y;
-          this.pullY = e.y;
-          this.aimX = ((e.x - g.w / 2) / (g.w / 2)) * 0.9;
-        } else if (e.type === "drag") {
-          this.pullY = e.y;
+        if (e.type === "tap" || e.type === "longpress" || e.type === "drag") {
+          if (!this.pulling) {
+            // start the pull from the first touch position
+            this.pulling = true;
+            this.pullStartY = e.y;
+            this.pullY = e.y;
+          }
           this.aimX = Math.max(
             -0.9,
             Math.min(0.9, ((e.x - g.w / 2) / (g.w / 2)) * 0.9),
           );
+          if (e.type === "drag") this.pullY = e.y;
         }
       }
       if (this.pulling && !g.input.isPointerDown()) {
