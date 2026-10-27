@@ -12,7 +12,19 @@ const input = new TouchInput(canvas);
 const save = createSafeStorage();
 const home = new HomeScreen();
 initTheme();
-home.setGames(GAMES);
+
+function recentGames(): typeof GAMES {
+  let times: Record<string, number> = {};
+  try {
+    times = save.get("lastPlayed", {} as Record<string, number>);
+  } catch {
+    times = {};
+  }
+  const order = (g: (typeof GAMES)[number]): number => times[g.id] ?? 0;
+  return [...GAMES].sort((a, b) => order(b) - order(a));
+}
+let orderedGames = recentGames();
+home.setGames(orderedGames);
 
 let w = 0;
 let h = 0;
@@ -51,7 +63,7 @@ function resize(): void {
   canvas.style.width = `${w}px`;
   canvas.style.height = `${h}px`;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  home.layout(w, h, GAMES);
+  home.layout(w, h, orderedGames);
 }
 
 function gameContext(): GameContext {
@@ -64,7 +76,9 @@ function gameContext(): GameContext {
     exit: () => {
       current?.teardown();
       current = null;
-      home.layout(w, h, GAMES);
+      orderedGames = recentGames();
+      home.setGames(orderedGames);
+      home.layout(w, h, orderedGames);
     },
   };
 }
@@ -85,8 +99,11 @@ function frame(t: number): void {
       w,
       h,
       input,
-      games: GAMES,
+      games: orderedGames,
       onOpen: (game) => {
+        const times = save.get("lastPlayed", {} as Record<string, number>);
+        times[game.id] = Date.now();
+        save.set("lastPlayed", times);
         current = game;
         game.init(gameContext());
       },
