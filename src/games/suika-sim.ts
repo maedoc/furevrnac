@@ -16,17 +16,18 @@ export interface Tier {
   color: string;
   leaf: string;
   name: string;
+  glyph: string;
 }
 
 export const TIERS: Tier[] = [
-  { r: 0.55, score: 1, color: "#5a6ea3", leaf: "#2e6b4f", name: "myrtille" },
-  { r: 0.8, score: 3, color: "#d43d2a", leaf: "#2e6b4f", name: "cherry" },
-  { r: 1.05, score: 6, color: "#e8942a", leaf: "#2e6b4f", name: "clementine" },
-  { r: 1.35, score: 10, color: "#e86a2a", leaf: "#2e6b4f", name: "orange" },
-  { r: 1.7, score: 15, color: "#8db052", leaf: "#2e6b4f", name: "pomme" },
-  { r: 2.1, score: 21, color: "#d4b02a", leaf: "#2e6b4f", name: "ananas" },
-  { r: 2.6, score: 28, color: "#7aa852", leaf: "#2e6b4f", name: "melon" },
-  { r: 3.2, score: 36, color: "#3f7a3a", leaf: "#2e6b4f", name: "watermelon" },
+  { r: 0.55, score: 1, color: "#5a6ea3", leaf: "#2e6b4f", name: "myrtille", glyph: "🫐" },
+  { r: 0.8, score: 3, color: "#d43d2a", leaf: "#2e6b4f", name: "cherry", glyph: "🍒" },
+  { r: 1.05, score: 6, color: "#e8942a", leaf: "#2e6b4f", name: "clementine", glyph: "🍊" },
+  { r: 1.35, score: 10, color: "#e86a2a", leaf: "#2e6b4f", name: "orange", glyph: "🍊" },
+  { r: 1.7, score: 15, color: "#8db052", leaf: "#2e6b4f", name: "pomme", glyph: "🍎" },
+  { r: 2.1, score: 21, color: "#d4b02a", leaf: "#2e6b4f", name: "ananas", glyph: "🍍" },
+  { r: 2.6, score: 28, color: "#7aa852", leaf: "#2e6b4f", name: "melon", glyph: "🍈" },
+  { r: 3.2, score: 36, color: "#3f7a3a", leaf: "#2e6b4f", name: "watermelon", glyph: "🍉" },
 ];
 
 export const GRAVITY = 60;

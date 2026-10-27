@@ -163,13 +163,14 @@ export class SuikaGame implements Game {
     if (this.newBest && s.score === this.best && s.score > 0)
       inkText(ctx, "★ new best!", w * 0.18, h * 0.115, sv * 0.024, this.accent);
 
-    inkText(ctx, "next", w * 0.82, h * 0.035, sv * 0.026, PALETTE.gray);
+    inkText(ctx, "next", w * 0.82, h * 0.032, sv * 0.026, PALETTE.gray);
+    const nextR = sv * 0.052;
     this.queue.slice(0, 3).forEach((tier, i) => {
-      const r = TIERS[tier].r * scale * 0.55;
-      const px = w * 0.82 + (i - 1) * r * 2.6;
+      const px = w * 0.82 + (i - 1) * nextR * 2.6;
       const py = h * 0.075;
-      this.drawFruit(ctx, px, py, r * 1.6 / TIERS[tier].r / scale, tier, false);
-      void r;
+      ctx.globalAlpha = i === 0 ? 1 : 0.55;
+      this.drawFruit(ctx, px, py, nextR, tier, false);
+      ctx.globalAlpha = 1;
     });
 
     inkRect(
@@ -197,7 +198,7 @@ export class SuikaGame implements Game {
       const px = ox + this.aimX * scale;
       const py = oy + DROP_Y * scale;
       ctx.globalAlpha = 0.5;
-      this.drawFruit(ctx, px, py, scale, tier, false);
+      this.drawFruit(ctx, px, py, TIERS[tier].r * scale, tier, false);
       ctx.globalAlpha = 1;
       ctx.strokeStyle = PALETTE.gray;
       ctx.lineWidth = 2;
@@ -212,7 +213,7 @@ export class SuikaGame implements Game {
     for (const f of s.fruits) {
       const px = ox + f.x * scale;
       const py = oy + f.y * scale;
-      this.drawFruit(ctx, px, py, scale, f.tier, f.justMerged);
+      this.drawFruit(ctx, px, py, f.r * scale, f.tier, f.justMerged);
     }
 
     for (const p of this.splash) {
@@ -248,38 +249,38 @@ export class SuikaGame implements Game {
     ctx: CanvasRenderingContext2D,
     px: number,
     py: number,
-    scale: number,
+    r: number,
     tier: number,
     fresh: boolean,
   ): void {
     const t = TIERS[tier];
-    const r = t.r * scale;
+    // plate: soft tinted disc under the emoji for manga consistency
     ctx.fillStyle = t.color;
-    ctx.strokeStyle = PALETTE.ink;
-    ctx.lineWidth = 2.5;
+    ctx.globalAlpha *= 0.25;
     ctx.beginPath();
     ctx.arc(px, py, r, 0, Math.PI * 2);
     ctx.fill();
+    ctx.globalAlpha /= 0.25;
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.lineWidth = Math.max(1.5, r * 0.09);
+    ctx.beginPath();
+    ctx.arc(px, py, r, 0, Math.PI * 2);
     ctx.stroke();
-    ctx.fillStyle = "rgba(255,253,248,0.35)";
-    ctx.beginPath();
-    ctx.arc(px - r * 0.3, py - r * 0.3, r * 0.45, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = t.leaf;
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    if (tier === 6 || tier === 7) {
-      ctx.moveTo(px - r * 0.5, py - r * 0.9);
-      ctx.lineTo(px - r * 0.1, py - r * 0.55);
-      ctx.moveTo(px + r * 0.3, py - r * 0.9);
-      ctx.lineTo(px - r * 0.1, py - r * 0.55);
-    } else {
-      ctx.moveTo(px, py - r * 0.7);
-      ctx.lineTo(px + r * 0.25, py - r * 1.05);
+    // glyph drawn to fit inside the disc
+    ctx.font = `${Math.round(r * 1.45)}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(t.glyph, px, py + r * 0.04);
+    // clementine vs orange: extra inner ring on clementine
+    if (tier === 2) {
+      ctx.strokeStyle = "rgba(212,61,42,0.7)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(px, py, r * 0.62, 0, Math.PI * 2);
+      ctx.stroke();
     }
-    ctx.stroke();
     if (fresh) {
-      ctx.strokeStyle = PALETTE.accent;
+      ctx.strokeStyle = "#d43d2a";
       ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.arc(px, py, r + 4, 0, Math.PI * 2);
