@@ -104,9 +104,25 @@ resize();
 start();
 
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js").catch(() => {
+  window.addEventListener("load", async () => {
+    try {
+      // Recovery: if a previous service worker is stuck serving a page
+      // whose bundles were purged, unregister everything and reload once.
+      const reg = await navigator.serviceWorker.getRegistration();
+      const key = "furevrnac:sw-ok";
+      if (reg) {
+        const res = await fetch("sw.js", { cache: "no-store" });
+        if (!res.ok && !sessionStorage.getItem(key)) {
+          sessionStorage.setItem(key, "1");
+          await reg.unregister();
+          location.reload();
+          return;
+        }
+        sessionStorage.removeItem(key);
+      }
+      await navigator.serviceWorker.register("sw.js");
+    } catch {
       /* offline mode unavailable — app still works */
-    });
+    }
   });
 }
