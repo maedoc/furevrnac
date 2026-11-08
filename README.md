@@ -33,6 +33,7 @@ after the first load it never needs the network again.
 | Ink Bastion | Tower defense, pseudo-3D road — enemies march toward your gate |
 | Ink Orchard Idle | A grove that grows while you're away — offline progress |
 | Ink Labyrinth | Tilt-maze — accelerometer steering, holes and a well to reach |
+| Khun Pan | Klotski sliding blocks — drag pieces, free the hero at the gate |
 
 ## Play
 

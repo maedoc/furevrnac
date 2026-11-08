@@ -17,6 +17,7 @@ import { InvadersGame } from "./invaders";
 import { TowerGame } from "./tower";
 import { OrchardIdleGame } from "./orchard-idle";
 import { MazeGame } from "./maze";
+import { KhunpanGame } from "./khunpan";
 
 export const GAMES: Game[] = [
   new SnakeGame(),
@@ -37,4 +38,5 @@ export const GAMES: Game[] = [
   new TowerGame(),
   new OrchardIdleGame(),
   new MazeGame(),
+  new KhunpanGame(),
 ];
